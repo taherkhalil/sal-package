@@ -84,8 +84,7 @@ def package_buy(doc, method):
   		 		frappe.msgprint("Package inactive")
   		cwp = frappe.db.sql("select * from `tabCustomer wise package",as_list=1)
   		check= [x[0] for x in cwp]
-  		# frappe.errprint(check)
-  		
+  		# frappe.errprint(check)		
   		for c in check:
   			cp = frappe.get_doc("Customer wise package",c)
   			aaj = date.today().strftime('%Y-%m-%d')
@@ -97,10 +96,10 @@ def package_buy(doc, method):
   				# frappe.errprint("in package with " + cp.services + "for " + cp.package)
   				p.rate =0 
   				p.amount =0
-  				
+  				frappe.errprint(p.qty)
   				#calculate_net_total()
   				doc.package_name = cp.package
-  				cp.used_qty =cp.used_qty +1 
+  				cp.used_qty =cp.used_qty +p.qty
   				cp.save()
   				flag =True
   				# calculate_taxes_and_totals(doc).calculate_outstanding_amount()
@@ -148,7 +147,7 @@ def on_submit(doc, method):
 		je.submit()
 
 @frappe.whitelist()
-def from_pos_call(doc,customer,item):
+def from_pos_call(doc,customer,item,qty):
 	frappe.errprint([customer,item])
 	cwp = frappe.db.sql("select * from `tabCustomer wise package",as_list=1)
 	check= [x[0] for x in cwp]
@@ -159,7 +158,7 @@ def from_pos_call(doc,customer,item):
 		aaj = date.today().strftime('%Y-%m-%d')
 		end_date = date.strftime(cp.valid_to,'%Y-%m-%d')
 	
-		if customer == cp.customer and item == cp.services and cp.quantity_issued != cp.used_qty and aaj < end_date: 
+		if customer == cp.customer and item == cp.services and cp.quantity_issued >= int(int(cp.used_qty)+int(qty)) and aaj < end_date: 
   			# frappe.msgprint("call me")
   			# cp.used_qty =cp.used_qty +1 
   			# cp.save()

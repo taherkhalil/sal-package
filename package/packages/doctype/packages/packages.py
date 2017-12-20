@@ -105,8 +105,8 @@ def package_buy(doc, method):
   				flag =True
   				# calculate_taxes_and_totals(doc).calculate_outstanding_amount()
 				break
-		if not flag:
-			frappe.msgprint("no package available")		
+		# if not flag:
+		# 	frappe.msgprint("no package available")		
 
 
 def on_submit(doc, method):

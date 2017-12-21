@@ -110,8 +110,8 @@ def package_buy(doc, method):
 
 def on_submit(doc, method):
 	frappe.errprint("in on on_submit")
-	acc = "Advances From Customer - S"
-	sales ="Sales - S"
+	acc = "Advances From Customer - DS"
+	sales ="Sales - DS"
 	if doc.package_name != "none":
 		frappe.errprint("has package")
 		p = frappe.get_doc("Packages",doc.package_name)
@@ -128,7 +128,7 @@ def on_submit(doc, method):
 		je = frappe.new_doc("Journal Entry") #create jv to add sales
 		je.posting_date = getdate()
 		je.company = doc.company
-		je.reference_name = doc.name
+		je.bill_no = doc.name
 		je.reference_date = getdate()
 		row1 = je.append("accounts", {})
 		row1.account= acc

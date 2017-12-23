@@ -94,8 +94,8 @@ def package_buy(doc, method):
   				# frappe.errprint(p.amount)
   				# frappe.errprint(doc.outstanding_amount)
   				# frappe.errprint("in package with " + cp.services + "for " + cp.package)
-  				p.rate =0 
-  				p.amount =0
+  				# p.rate =0 
+  				# p.amount =0
   				frappe.errprint(p.qty)
   				#calculate_net_total()
   				doc.package_name = cp.package
@@ -112,6 +112,7 @@ def on_submit(doc, method):
 	frappe.errprint("in on on_submit")
 	acc = "Advances From Customer - DS"
 	sales ="Sales - DS"
+	total_qty = 0
 	if doc.package_name != "none":
 		frappe.errprint("has package")
 		p = frappe.get_doc("Packages",doc.package_name)
@@ -125,6 +126,11 @@ def on_submit(doc, method):
 		frappe.errprint(per_service_cost)
 		
 
+		for it in doc.get("items"):
+			if it.amount ==0:
+				total_qty = total_qty +it.qty
+
+		frappe.errprint(["total qty",total_qty])
 		je = frappe.new_doc("Journal Entry") #create jv to add sales
 		je.posting_date = getdate()
 		je.company = doc.company
@@ -134,7 +140,7 @@ def on_submit(doc, method):
 		row1.account= acc
 		row1.party_type = "Customer"
 		row1.party = doc.customer
-		row1.debit_in_account_currency = per_service_cost
+		row1.debit_in_account_currency = per_service_cost*total_qty
 		row1.credit_in_account_currency = 0.0
 
 		row2 = je.append("accounts", {})
@@ -142,7 +148,7 @@ def on_submit(doc, method):
 		row2.party_type = "Customer"
 		row2.party = doc.customer
 		row2.debit_in_account_currency = 0.0
-		row2.credit_in_account_currency = per_service_cost
+		row2.credit_in_account_currency = per_service_cost*total_qty
 		je.insert(ignore_permissions=True)
 		je.submit()
 

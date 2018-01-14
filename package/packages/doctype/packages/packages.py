@@ -31,6 +31,7 @@ class Packages(Document):
 			it.item_code = package
 			it.item_group = "Packages"
 			it.standard_rate = cost
+			it.is_stock_item = 0
 			it.income_account = income_account
 			it.selling_cost_center = selling_cost_center
 			it.insert(ignore_permissions=True)

@@ -97,17 +97,20 @@ def on_submit(doc, method):
   			aaj = date.today().strftime('%Y-%m-%d')
   			end_date = date.strftime(cp.valid_to,'%Y-%m-%d')
   			
-  			if customer == cp.customer and p.item_code == cp.services and cp.quantity_issued != cp.used_qty and aaj < end_date: 
+  			if customer == cp.customer and p.item_code == cp.services and cp.quantity_issued >= cp.used_qty and aaj < end_date: 
   				doc.package_name = cp.package
   				cp.used_qty =cp.used_qty +p.qty
+  				cp.remaining_qty = cp.quantity_issued - cp.used_qty
   				cp.save()
   				flag =True
 				break
 
 
-
-	acc = "Advances From Customer - DS"
-	sales ="Sales - DS"
+	settings = frappe.get_doc("Package Settings","Package Settings")
+	# acc = "Advances From Customer - IBS"
+	# sales ="Sales - IBS"
+	acc = settings.customer_advance_account
+	sales =settings.sales_account
 	total_qty = 0
 	if doc.package_name != "none":
 		p = frappe.get_doc("Packages",doc.package_name)

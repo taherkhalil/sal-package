@@ -34,29 +34,29 @@ class Packages(Document):
 			it.insert(ignore_permissions=True)
 			it.save()
 
-@frappe.whitelist()
-def package_buy(doc, method):
-	customer = doc.customer
-	tday= today()
-	flag =False
-	pacakage_list =frappe.db.sql("select package_name from tabPackages",as_list=1)
-	pl= [x[0] for x in pacakage_list]
+# @frappe.whitelist()
+# def package_buy(doc, method):
+# 	customer = doc.customer
+# 	tday= today()
+# 	flag =False
+# 	pacakage_list =frappe.db.sql("select package_name from tabPackages",as_list=1)
+# 	pl= [x[0] for x in pacakage_list]
 
-	for p in doc.get("items"):
-  		cwp = frappe.db.sql("select * from `tabCustomer wise package",as_list=1)
-  		check= [x[0] for x in cwp]
+# 	for p in doc.get("items"):
+#   		cwp = frappe.db.sql("select * from `tabCustomer wise package",as_list=1)
+#   		check= [x[0] for x in cwp]
 	
-  		for c in check:
-  			cp = frappe.get_doc("Customer wise package",c)
-  			aaj = date.today().strftime('%Y-%m-%d')
-  			end_date = date.strftime(cp.valid_to,'%Y-%m-%d')
+#   		for c in check:
+#   			cp = frappe.get_doc("Customer wise package",c)
+#   			aaj = date.today().strftime('%Y-%m-%d')
+#   			end_date = date.strftime(cp.valid_to,'%Y-%m-%d')
   			
-  			if customer == cp.customer and p.item_code == cp.services and cp.quantity_issued != cp.used_qty and aaj < end_date: 
-  				doc.package_name = cp.package
-  				# cp.used_qty =cp.used_qty +p.qty
-  				# cp.save()
-  				flag =True
-				break
+#   			if customer == cp.customer and p.item_code == cp.services and cp.quantity_issued != cp.used_qty and aaj < end_date: 
+#   				doc.package_name = cp.package
+#   				# cp.used_qty =cp.used_qty +p.qty
+#   				# cp.save()
+#   				flag =True
+# 				break
 
 def on_submit(doc, method):
 	customer = doc.customer
@@ -85,25 +85,32 @@ def on_submit(doc, method):
 						cp.valid_to = cp.valid_from + timedelta(days = 999)
 
 					cp.used_qty = 0 
-  		 			cp.insert(ignore_permissions=True)
-  		 			cp.save()
+					cp.remaining_qty = cp.quantity_issued
+  		 			# cp.insert(ignore_permissions=True)
+  		 			cp.save(ignore_permissions=True)
+  		 			# cp.submit()
+  		 			# cp.save(ignore_permissions=True)
   		 	else:
   		 		frappe.msgprint("Package inactive")
-  		cwp = frappe.db.sql("select * from `tabCustomer wise package",as_list=1)
-  		check= [x[0] for x in cwp]
-	
-  		for c in check:
-  			cp = frappe.get_doc("Customer wise package",c)
-  			aaj = date.today().strftime('%Y-%m-%d')
-  			end_date = date.strftime(cp.valid_to,'%Y-%m-%d')
-  			
-  			if customer == cp.customer and p.item_code == cp.services and cp.quantity_issued >= cp.used_qty and aaj < end_date: 
-  				doc.package_name = cp.package
-  				cp.used_qty =cp.used_qty +p.qty
-  				cp.remaining_qty = cp.quantity_issued - cp.used_qty
-  				cp.save()
-  				flag =True
-				break
+
+
+  		#for reducing quantity in package if item present in items. 
+  		if doc.is_pos == 1 : 
+	  		cwp = frappe.db.sql("select * from `tabCustomer wise package",as_list=1)
+	  		check= [x[0] for x in cwp]
+		
+	  		for c in check:
+	  			cp = frappe.get_doc("Customer wise package",c)
+	  			aaj = date.today().strftime('%Y-%m-%d')
+	  			end_date = date.strftime(cp.valid_to,'%Y-%m-%d')
+	  			
+	  			if customer == cp.customer and p.item_code == cp.services and cp.quantity_issued >= cp.used_qty and aaj < end_date and not (cp.remaining_qty <= 0): 
+	  				doc.package_name = cp.package
+	  				cp.used_qty =cp.used_qty +p.qty
+	  				cp.remaining_qty = cp.quantity_issued - cp.used_qty
+	  				cp.save(ignore_permissions=True)
+	  				flag =True
+					break
 
 
 	settings = frappe.get_doc("Package Settings","Package Settings")
@@ -158,7 +165,7 @@ def from_pos_call(doc,customer,item,qty):
 		aaj = date.today().strftime('%Y-%m-%d')
 		end_date = date.strftime(cp.valid_to,'%Y-%m-%d')
 	
-		if customer == cp.customer and item == cp.services and cp.quantity_issued >= int(int(cp.used_qty)+int(qty)) and aaj < end_date: 
+		if customer == cp.customer and item == cp.services and cp.quantity_issued >= int(int(cp.used_qty)+int(qty)) and aaj < end_date and not(cp.remaining_qty <= 0): 
   			# frappe.msgprint("call me")
   			# cp.used_qty =cp.used_qty +1 
   			# cp.save()

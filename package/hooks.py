@@ -86,7 +86,6 @@ doc_events = {
 	# 	"on_trash": "method"
 	# }
 	"Sales Invoice" : {
-		"validate": "package.packages.doctype.packages.packages.package_buy",
 		"on_submit": "package.packages.doctype.packages.packages.on_submit"
 	}
 }
